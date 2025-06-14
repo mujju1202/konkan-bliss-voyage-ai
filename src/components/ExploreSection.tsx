@@ -50,13 +50,13 @@ const destinations = [
 
 export const ExploreSection = () => {
   return (
-    <section id="explore" className="py-20 bg-white">
+    <section id="explore" className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Explore Konkan's Best Destinations
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             From pristine beaches to historic forts, discover the diverse beauty of the Konkan coast
           </p>
         </div>
@@ -106,7 +106,7 @@ export const ExploreSection = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button size="lg" variant="outline" className="px-8">
+          <Button size="lg" variant="outline" className="px-8 border-white text-white hover:bg-white hover:text-black">
             View All Destinations
           </Button>
         </div>
