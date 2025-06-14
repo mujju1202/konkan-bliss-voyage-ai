@@ -1,9 +1,9 @@
-
 import { Hero } from "@/components/Hero";
 import { Navigation } from "@/components/Navigation";
 import { Features } from "@/components/Features";
 import { ExploreSection } from "@/components/ExploreSection";
 import { Footer } from "@/components/Footer";
+import { ChatBotWidget } from "@/components/ChatBotWidget";
 
 const Index = () => {
   return (
@@ -13,6 +13,7 @@ const Index = () => {
       <Features />
       <ExploreSection />
       <Footer />
+      <ChatBotWidget />
     </div>
   );
 };
