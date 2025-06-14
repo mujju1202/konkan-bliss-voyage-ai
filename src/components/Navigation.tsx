@@ -1,7 +1,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Map, Heart, MessageCircle, User } from "lucide-react";
+import { Menu, X, Map, Heart, MessageCircle, User, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,23 +13,26 @@ export const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-              KonkanBliss
-            </h1>
+            <Link to="/">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                KonkanBliss
+              </h1>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              <a href="#home" className="text-gray-900 hover:text-orange-500 px-3 py-2 text-sm font-medium transition-colors">
+              <Link to="/" className="text-gray-900 hover:text-orange-500 px-3 py-2 text-sm font-medium transition-colors">
                 Home
-              </a>
+              </Link>
               <a href="#explore" className="text-gray-900 hover:text-orange-500 px-3 py-2 text-sm font-medium transition-colors">
                 Explore
               </a>
-              <a href="#itinerary" className="text-gray-900 hover:text-orange-500 px-3 py-2 text-sm font-medium transition-colors">
+              <Link to="/ai-planner" className="text-gray-900 hover:text-orange-500 px-3 py-2 text-sm font-medium flex items-center gap-1">
+                <Sparkles size={16} />
                 AI Planner
-              </a>
+              </Link>
               <a href="#map" className="text-gray-900 hover:text-orange-500 px-3 py-2 text-sm font-medium flex items-center gap-1">
                 <Map size={16} />
                 Maps
@@ -71,15 +75,15 @@ export const Navigation = () => {
       {isOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg">
-            <a href="#home" className="block px-3 py-2 text-gray-900 hover:text-orange-500 text-sm font-medium">
+            <Link to="/" className="block px-3 py-2 text-gray-900 hover:text-orange-500 text-sm font-medium">
               Home
-            </a>
+            </Link>
             <a href="#explore" className="block px-3 py-2 text-gray-900 hover:text-orange-500 text-sm font-medium">
               Explore
             </a>
-            <a href="#itinerary" className="block px-3 py-2 text-gray-900 hover:text-orange-500 text-sm font-medium">
+            <Link to="/ai-planner" className="block px-3 py-2 text-gray-900 hover:text-orange-500 text-sm font-medium">
               AI Planner
-            </a>
+            </Link>
             <a href="#map" className="block px-3 py-2 text-gray-900 hover:text-orange-500 text-sm font-medium">
               Maps
             </a>
