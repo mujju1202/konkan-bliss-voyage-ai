@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, MapPin, Users, Calendar, DollarSign } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles, MapPin, Users, Calendar, DollarSign, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { ItineraryData } from "@/pages/AIPlanner";
@@ -16,21 +17,48 @@ interface PlannerFormProps {
   onGenerating: (generating: boolean) => void;
 }
 
+const exploreOptions = [
+  { value: "adventure", label: "Adventure & Water Sports" },
+  { value: "nature", label: "Nature & Wildlife" },
+  { value: "heritage", label: "Heritage & Culture" },
+  { value: "beaches", label: "Beach Relaxation" },
+  { value: "food", label: "Food & Local Cuisine" },
+  { value: "hidden-gems", label: "Hidden Gems" },
+  { value: "photography", label: "Photography & Scenic" },
+  { value: "spiritual", label: "Spiritual & Temples" }
+];
+
 export const PlannerForm = ({ onPlanGenerated, onGenerating }: PlannerFormProps) => {
   const [formData, setFormData] = useState({
     days: "",
     groupType: "",
-    exploreType: "",
+    exploreType: [] as string[],
     budgetRange: "",
     specialRequests: ""
   });
   
   const { toast } = useToast();
 
+  const handleExploreTypeChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      exploreType: prev.exploreType.includes(value)
+        ? prev.exploreType.filter(item => item !== value)
+        : [...prev.exploreType, value]
+    }));
+  };
+
+  const removeExploreType = (valueToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      exploreType: prev.exploreType.filter(item => item !== valueToRemove)
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.days || !formData.groupType || !formData.exploreType || !formData.budgetRange) {
+    if (!formData.days || !formData.groupType || formData.exploreType.length === 0 || !formData.budgetRange) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields to generate your itinerary.",
@@ -57,7 +85,7 @@ export const PlannerForm = ({ onPlanGenerated, onGenerating }: PlannerFormProps)
       const planData: ItineraryData = {
         days: parseInt(formData.days),
         groupType: formData.groupType,
-        exploreType: formData.exploreType,
+        exploreType: formData.exploreType.join(", "),
         budgetRange: formData.budgetRange,
         generatedPlan: data.itinerary
       };
@@ -136,23 +164,47 @@ export const PlannerForm = ({ onPlanGenerated, onGenerating }: PlannerFormProps)
           <div className="space-y-2">
             <Label htmlFor="exploreType" className="flex items-center gap-2">
               <MapPin size={16} />
-              Exploration Style *
+              Exploration Style * (Select multiple)
             </Label>
-            <Select onValueChange={(value) => setFormData({...formData, exploreType: value})}>
+            <Select onValueChange={handleExploreTypeChange}>
               <SelectTrigger>
                 <SelectValue placeholder="What interests you most?" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="adventure">Adventure & Water Sports</SelectItem>
-                <SelectItem value="nature">Nature & Wildlife</SelectItem>
-                <SelectItem value="heritage">Heritage & Culture</SelectItem>
-                <SelectItem value="beaches">Beach Relaxation</SelectItem>
-                <SelectItem value="food">Food & Local Cuisine</SelectItem>
-                <SelectItem value="hidden-gems">Hidden Gems</SelectItem>
-                <SelectItem value="photography">Photography & Scenic</SelectItem>
-                <SelectItem value="spiritual">Spiritual & Temples</SelectItem>
+                {exploreOptions.map((option) => (
+                  <SelectItem 
+                    key={option.value} 
+                    value={option.value}
+                    className={formData.exploreType.includes(option.value) ? "bg-orange-50" : ""}
+                  >
+                    {option.label}
+                    {formData.exploreType.includes(option.value) && (
+                      <span className="ml-2 text-orange-600">✓</span>
+                    )}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            
+            {formData.exploreType.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {formData.exploreType.map((type) => {
+                  const option = exploreOptions.find(opt => opt.value === type);
+                  return (
+                    <Badge key={type} variant="secondary" className="flex items-center gap-1">
+                      {option?.label}
+                      <button
+                        type="button"
+                        onClick={() => removeExploreType(type)}
+                        className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                      >
+                        <X size={12} />
+                      </button>
+                    </Badge>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
