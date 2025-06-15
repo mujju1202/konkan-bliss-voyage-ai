@@ -197,7 +197,6 @@ export default function PackageDetails() {
                           )}
                         </div>
                         <div className="text-sm text-gray-700">{staticPlace?.description}</div>
-                        {/* No restaurant info for static places in this demo */}
                       </li>
                     );
                   })}
@@ -206,6 +205,7 @@ export default function PackageDetails() {
             )}
           </div>
         </div>
+        {/* Only render the map if there are valid locations */}
         {locationObjects && locationObjects.length > 0 && (
           <div className="mb-6">
             <h3 className="font-semibold text-lg mb-4">Map of All Locations</h3>
@@ -217,7 +217,6 @@ export default function PackageDetails() {
               className="mb-5"
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              {/* Only render valid Marker(s). Never pass undefined or null! */}
               {locationObjects.map((loc, idx) => (
                 <Marker
                   key={idx}
