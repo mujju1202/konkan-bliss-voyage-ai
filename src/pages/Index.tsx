@@ -11,7 +11,7 @@ const Index = () => {
       <Navigation />
       <Hero />
       <Features />
-      <ExploreSection />
+      <ExploreSection title="Explore Konkan" limit={4} showMoreButton />
       <Footer />
       <ChatBotWidget />
     </div>

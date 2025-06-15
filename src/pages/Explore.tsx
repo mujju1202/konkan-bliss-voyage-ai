@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MapPin, Star, Clock, DollarSign, Phone, Camera, Waves, Mountain, Building, Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import { ExploreSection } from "@/components/ExploreSection";
 
 const destinations = [
   {
@@ -152,252 +153,24 @@ const destinations = [
 const categories = ["All", "Beach", "Heritage", "Nature"];
 
 const Explore = () => {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedDestination, setSelectedDestination] = useState(null);
-
-  const filteredDestinations = selectedCategory === "All" 
-    ? destinations 
-    : destinations.filter(dest => dest.category === selectedCategory);
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "Beach": return <Waves className="w-4 h-4" />;
-      case "Heritage": return <Building className="w-4 h-4" />;
-      case "Nature": return <Mountain className="w-4 h-4" />;
-      default: return <MapPin className="w-4 h-4" />;
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "Beach": return "from-konkan-turquoise-500 to-blue-500";
-      case "Heritage": return "from-konkan-orange-500 to-red-500";
-      case "Nature": return "from-konkan-forest-500 to-green-600";
-      default: return "from-gray-500 to-gray-600";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-konkan-turquoise-50 via-white to-konkan-orange-50">
       <Navigation />
-      
       <div className="pt-16">
-        {/* Hero Section */}
         <section className="py-20 bg-gradient-to-br from-konkan-turquoise-600 via-konkan-orange-500 to-konkan-forest-600 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-black/20"></div>
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <h1 className="text-4xl md:text-6xl font-bold font-display mb-6">
-                Explore Konkan's Best
-              </h1>
-              <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-                Discover pristine beaches, historic forts, and natural wonders across the beautiful Konkan coast
-              </p>
-            </motion.div>
+            <h1 className="text-4xl md:text-6xl font-bold font-display mb-6">
+              Explore Konkan's Best
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+              Discover pristine beaches, historic forts, and natural wonders across the beautiful Konkan coast
+            </p>
           </div>
         </section>
-
-        {/* Category Filter */}
-        <section className="py-8 bg-white/80 backdrop-blur-sm sticky top-16 z-40 border-b border-white/20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap justify-center gap-4">
-              {categories.map((category) => (
-                <motion.button
-                  key={category}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-6 py-3 rounded-2xl font-medium transition-all duration-300 flex items-center gap-2 ${
-                    selectedCategory === category
-                      ? `bg-gradient-to-r ${getCategoryColor(category)} text-white shadow-lg`
-                      : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
-                  }`}
-                >
-                  {getCategoryIcon(category)}
-                  {category}
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Destinations Grid */}
-        <section className="py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {filteredDestinations.map((destination, index) => (
-                <motion.div
-                  key={destination.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.6 }}
-                >
-                  <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-0 shadow-lg bg-white/80 backdrop-blur-sm floating-card">
-                    <div className="relative overflow-hidden">
-                      <img 
-                        src={destination.image} 
-                        alt={destination.name}
-                        className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
-                        <Star className="text-yellow-500 fill-current" size={14} />
-                        <span className="text-sm font-medium">{destination.rating}</span>
-                      </div>
-                      <div className="absolute top-4 left-4">
-                        <Badge className={`bg-gradient-to-r ${getCategoryColor(destination.category)} text-white border-0`}>
-                          {getCategoryIcon(destination.category)}
-                          <span className="ml-1">{destination.category}</span>
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <MapPin className="text-konkan-orange-500" size={18} />
-                        {destination.name}
-                      </CardTitle>
-                      <CardDescription className="text-gray-600">
-                        {destination.description}
-                      </CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex flex-wrap gap-2">
-                          {destination.highlights.slice(0, 3).map((highlight, idx) => (
-                            <span 
-                              key={idx}
-                              className="px-2 py-1 bg-konkan-turquoise-100 text-konkan-turquoise-700 text-xs rounded-full"
-                            >
-                              {highlight}
-                            </span>
-                          ))}
-                        </div>
-                        
-                        <div className="flex items-center justify-between text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <Clock size={14} />
-                            <span>{destination.bestTime}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <DollarSign size={14} />
-                            <span className="font-medium">{destination.estimatedCost}</span>
-                          </div>
-                        </div>
-
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              className="w-full bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 hover:from-konkan-turquoise-600 hover:to-konkan-orange-600 text-white rounded-xl hover-lift"
-                              onClick={() => setSelectedDestination(destination)}
-                            >
-                              <Camera className="mr-2" size={16} />
-                              Explore Details
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle className="text-2xl font-display flex items-center gap-2">
-                                <MapPin className="text-konkan-orange-500" />
-                                {destination.name}
-                              </DialogTitle>
-                              <DialogDescription className="text-lg">
-                                {destination.description}
-                              </DialogDescription>
-                            </DialogHeader>
-                            
-                            {selectedDestination && (
-                              <div className="space-y-6">
-                                <img 
-                                  src={selectedDestination.image} 
-                                  alt={selectedDestination.name}
-                                  className="w-full h-64 object-cover rounded-xl"
-                                />
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  <div>
-                                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                                      <MapPin className="text-konkan-turquoise-500" size={18} />
-                                      Nearby Attractions
-                                    </h3>
-                                    <div className="space-y-2">
-                                      {selectedDestination.attractions.map((attraction, idx) => (
-                                        <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                          <div>
-                                            <p className="font-medium">{attraction.name}</p>
-                                            <p className="text-sm text-gray-600">{attraction.type}</p>
-                                          </div>
-                                          <span className="text-sm text-konkan-turquoise-600 font-medium">
-                                            {attraction.distance}
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                  
-                                  <div>
-                                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                                      <Phone className="text-konkan-orange-500" size={18} />
-                                      Recommended Restaurants
-                                    </h3>
-                                    <div className="space-y-2">
-                                      {selectedDestination.restaurants.map((restaurant, idx) => (
-                                        <div key={idx} className="p-3 bg-gray-50 rounded-lg">
-                                          <div className="flex justify-between items-start mb-1">
-                                            <p className="font-medium">{restaurant.name}</p>
-                                            <div className="flex items-center gap-1">
-                                              <Star className="text-yellow-500 fill-current" size={12} />
-                                              <span className="text-sm">{restaurant.rating}</span>
-                                            </div>
-                                          </div>
-                                          <p className="text-sm text-gray-600 mb-1">{restaurant.cuisine}</p>
-                                          <p className="text-sm text-konkan-turquoise-600">{restaurant.contact}</p>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                <div className="bg-konkan-turquoise-50 p-4 rounded-xl">
-                                  <h3 className="text-lg font-semibold mb-2 text-konkan-turquoise-800">
-                                    Local Tips
-                                  </h3>
-                                  <p className="text-konkan-turquoise-700">{selectedDestination.tips}</p>
-                                </div>
-                                
-                                <div className="flex gap-4">
-                                  <Button className="flex-1 bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 text-white rounded-xl">
-                                    <MapPin className="mr-2" size={16} />
-                                    View on Map
-                                  </Button>
-                                  <Button variant="outline" className="flex-1 border-konkan-turquoise-300 text-konkan-turquoise-600 hover:bg-konkan-turquoise-50 rounded-xl">
-                                    <Heart className="mr-2" size={16} />
-                                    Save to Favorites
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
+        {/* Reusable ExploreSection below */}
+        <ExploreSection title="All Places to Explore" />
       </div>
-      
       <Footer />
     </div>
   );
