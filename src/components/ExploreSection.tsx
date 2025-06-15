@@ -18,6 +18,8 @@ type Destination = {
   image: string;
   description: string;
   rating?: number;
+  latitude?: number;
+  longitude?: number;
 };
 
 type Package = {
@@ -26,6 +28,9 @@ type Package = {
   image_url?: string | null;
   description: string;
   highlights?: string[];
+  // Optionally allow coordinates in a package for this button (extendable in future)
+  latitude?: number;
+  longitude?: number;
 };
 
 const staticDestinations: Destination[] = [
@@ -33,31 +38,41 @@ const staticDestinations: Destination[] = [
     name: "Tarkarli Beach",
     image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     description: "Crystal clear waters perfect for water sports and relaxation",
-    rating: 4.8
+    rating: 4.8,
+    latitude: 16.0167,
+    longitude: 73.4667
   },
   {
     name: "Sindhudurg Fort",
     image: "https://images.unsplash.com/photo-1466442929976-97f336a657be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     description: "Historic sea fort built by Chhatrapati Shivaji Maharaj",
-    rating: 4.7
+    rating: 4.7,
+    latitude: 16.0333,
+    longitude: 73.5000
   },
   {
     name: "Amboli Waterfalls",
     image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     description: "Breathtaking waterfalls surrounded by lush greenery",
-    rating: 4.9
+    rating: 4.9,
+    latitude: 15.9500,
+    longitude: 74.0000
   },
   {
     name: "Malvan Beach",
     image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     description: "Famous for scuba diving and authentic Malvani cuisine",
-    rating: 4.6
+    rating: 4.6,
+    latitude: 16.0594,
+    longitude: 73.4707
   },
   {
     name: "Vengurla Beach",
     image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     description: "Pristine beach with golden sand and coconut groves",
-    rating: 4.5
+    rating: 4.5,
+    latitude: 15.8667,
+    longitude: 73.6333
   }
 ];
 
@@ -69,14 +84,21 @@ export const ExploreSection = ({
   const [items, setItems] = useState<Package[] | Destination[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Reusable function for Google Maps directions
+  const handleNavigate = (lat: number, lng: number) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+    window.open(url, "_blank");
+  };
+
   useEffect(() => {
     // Try to fetch data from Supabase 'packages' table; fallback to static destinations
+    // It is assumed that if "packages" have coordinates, they're included in the JSON shape;
+    // For now, coordinates are provided for static destinations.
     const fetchFromSupabase = async () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("packages")
-        .select("id,title,description,image_url,highlights")
-        .order("created_at", { ascending: false });
+        .select("id,title,description,image_url,highlights");
       if (error || !data || data.length === 0) {
         setItems(limit ? staticDestinations.slice(0, limit) : staticDestinations);
         setLoading(false);
@@ -85,7 +107,6 @@ export const ExploreSection = ({
       setItems(limit ? data.slice(0, limit) : data);
       setLoading(false);
     };
-
     fetchFromSupabase();
   }, [limit]);
 
@@ -106,49 +127,81 @@ export const ExploreSection = ({
             ? Array.from({ length: limit || 6 }).map((_, i) => (
                 <Card key={i} className="animate-pulse h-80 bg-gray-900/30" />
               ))
-            : items.map((item, idx) => (
-                <Card key={item.id || idx} className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-lg">
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={"image_url" in item ? item.image_url || staticDestinations[idx % staticDestinations.length].image : (item as Destination).image}
-                      alt={"title" in item ? item.title : (item as Destination).name}
-                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    {"rating" in item && (
-                      <div className="absolute top-4 right-4 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
-                        <Star className="text-yellow-500 fill-current" size={14} />
-                        <span className="text-sm font-medium">{(item as Destination).rating}</span>
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="text-lg text-black">
-                      {"title" in item ? item.title : (item as Destination).name}
-                    </CardTitle>
-                    <CardDescription className="text-gray-700">
-                      {"description" in item ? item.description : (item as Destination).description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {Array.isArray((item as Package).highlights) && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {(item as Package).highlights
-                          ?.slice(0, 3)
-                          .map((highlight, hIdx) => (
-                            <span key={hIdx} className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
-                              {highlight}
-                            </span>
-                          ))}
-                      </div>
-                    )}
-                    <Button className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white mt-2">
-                      More Details
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-        </div>
+            : items.map((item, idx) => {
+                // Determine if card has coordinates available
+                const lat =
+                  "latitude" in item
+                    ? item.latitude
+                    : (staticDestinations[idx % staticDestinations.length].latitude);
+                const lng =
+                  "longitude" in item
+                    ? item.longitude
+                    : (staticDestinations[idx % staticDestinations.length].longitude);
 
+                const hasCoords = typeof lat === "number" && typeof lng === "number";
+
+                return (
+                  <Card key={item.id || idx} className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-lg">
+                    <div className="relative overflow-hidden">
+                      <img
+                        src={
+                          "image_url" in item
+                            ? item.image_url || staticDestinations[idx % staticDestinations.length].image
+                            : (item as Destination).image
+                        }
+                        alt={
+                          "title" in item
+                            ? item.title
+                            : (item as Destination).name
+                        }
+                        className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      {"rating" in item && (
+                        <div className="absolute top-4 right-4 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
+                          <Star className="text-yellow-500 fill-current" size={14} />
+                          <span className="text-sm font-medium">{(item as Destination).rating}</span>
+                        </div>
+                      )}
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg text-black">
+                        {"title" in item ? item.title : (item as Destination).name}
+                      </CardTitle>
+                      <CardDescription className="text-gray-700">
+                        {"description" in item ? item.description : (item as Destination).description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {Array.isArray((item as Package).highlights) && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {(item as Package).highlights
+                            ?.slice(0, 3)
+                            .map((highlight, hIdx) => (
+                              <span key={hIdx} className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
+                                {highlight}
+                              </span>
+                            ))}
+                        </div>
+                      )}
+                      <div className="flex flex-col gap-2 mt-2">
+                        <Button className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white">
+                          More Details
+                        </Button>
+                        {hasCoords && (
+                          <Button
+                            className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white"
+                            variant="secondary"
+                            onClick={() => lat && lng && handleNavigate(lat, lng)}
+                          >
+                            Navigate
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+        </div>
         {showMoreButton && (
           <div className="text-center mt-10">
             <Link to="/explore">
