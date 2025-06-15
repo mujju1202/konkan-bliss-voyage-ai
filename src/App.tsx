@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import About from "./pages/About";
 import Auth from "./pages/Auth";
 import ChatBot from "./pages/ChatBot";
 import NotFound from "./pages/NotFound";
+import PackageDetails from "./pages/PackageDetails"; // Static import fixes the JSX syntax error
 
 const queryClient = new QueryClient();
 
@@ -30,7 +32,7 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/chat" element={<ChatBot />} />
-          <Route path="/package/:id" element={<import("./pages/PackageDetails").then(mod => <mod.default />)} />
+          <Route path="/package/:id" element={<PackageDetails />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -40,3 +42,4 @@ const App = () => (
 );
 
 export default App;
+
