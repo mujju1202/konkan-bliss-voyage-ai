@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface ExploreSectionProps {
   title?: string;
@@ -83,6 +83,7 @@ export const ExploreSection = ({
 }: ExploreSectionProps) => {
   const [items, setItems] = useState<Package[] | Destination[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Reusable function for Google Maps directions
   const handleNavigate = (lat: number, lng: number) => {
@@ -140,65 +141,80 @@ export const ExploreSection = ({
 
                 const hasCoords = typeof lat === "number" && typeof lng === "number";
 
+                const cardClickable = "id" in item;
+
                 return (
-                  <Card key={item.id || idx} className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-lg">
-                    <div className="relative overflow-hidden">
-                      <img
-                        src={
-                          "image_url" in item
-                            ? item.image_url || staticDestinations[idx % staticDestinations.length].image
-                            : (item as Destination).image
-                        }
-                        alt={
-                          "title" in item
-                            ? item.title
-                            : (item as Destination).name
-                        }
-                        className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      {"rating" in item && (
-                        <div className="absolute top-4 right-4 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
-                          <Star className="text-yellow-500 fill-current" size={14} />
-                          <span className="text-sm font-medium">{(item as Destination).rating}</span>
-                        </div>
-                      )}
-                    </div>
-                    <CardHeader>
-                      <CardTitle className="text-lg text-black">
-                        {"title" in item ? item.title : (item as Destination).name}
-                      </CardTitle>
-                      <CardDescription className="text-gray-700">
-                        {"description" in item ? item.description : (item as Destination).description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {Array.isArray((item as Package).highlights) && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {(item as Package).highlights
-                            ?.slice(0, 3)
-                            .map((highlight, hIdx) => (
-                              <span key={hIdx} className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
-                                {highlight}
-                              </span>
-                            ))}
-                        </div>
-                      )}
-                      <div className="flex flex-col gap-2 mt-2">
-                        <Button className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white">
-                          More Details
-                        </Button>
-                        {hasCoords && (
-                          <Button
-                            className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white"
-                            variant="secondary"
-                            onClick={() => lat && lng && handleNavigate(lat, lng)}
-                          >
-                            Navigate
-                          </Button>
+                  <div
+                    key={item.id || idx}
+                    className={cardClickable ? "cursor-pointer" : ""}
+                    onClick={
+                      cardClickable
+                        ? () => navigate(`/package/${item.id}`)
+                        : undefined
+                    }
+                  >
+                    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-lg">
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={
+                            "image_url" in item
+                              ? item.image_url || staticDestinations[idx % staticDestinations.length].image
+                              : (item as Destination).image
+                          }
+                          alt={
+                            "title" in item
+                              ? item.title
+                              : (item as Destination).name
+                          }
+                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        {"rating" in item && (
+                          <div className="absolute top-4 right-4 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
+                            <Star className="text-yellow-500 fill-current" size={14} />
+                            <span className="text-sm font-medium">{(item as Destination).rating}</span>
+                          </div>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg text-black">
+                          {"title" in item ? item.title : (item as Destination).name}
+                        </CardTitle>
+                        <CardDescription className="text-gray-700">
+                          {"description" in item ? item.description : (item as Destination).description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {Array.isArray((item as Package).highlights) && (
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {(item as Package).highlights
+                              ?.slice(0, 3)
+                              .map((highlight, hIdx) => (
+                                <span key={hIdx} className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
+                                  {highlight}
+                                </span>
+                              ))}
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-2 mt-2">
+                          <Button className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white">
+                            More Details
+                          </Button>
+                          {hasCoords && (
+                            <Button
+                              className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white"
+                              variant="secondary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                lat && lng && handleNavigate(lat, lng);
+                              }}
+                            >
+                              Navigate
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 );
               })}
         </div>

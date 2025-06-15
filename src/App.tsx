@@ -30,6 +30,7 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/chat" element={<ChatBot />} />
+          <Route path="/package/:id" element={<import("./pages/PackageDetails").then(mod => <mod.default />)} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
