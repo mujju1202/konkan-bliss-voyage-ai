@@ -18,6 +18,40 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+// Demo/static place details (extend as you wish)
+const staticPlaces: Record<string, { name: string; latitude: number; longitude: number; description?: string }> = {
+  "Tarkarli Beach": {
+    name: "Tarkarli Beach",
+    latitude: 16.0167,
+    longitude: 73.4667,
+    description: "Crystal clear waters perfect for water sports and relaxation",
+  },
+  "Sindhudurg Fort": {
+    name: "Sindhudurg Fort",
+    latitude: 16.0333,
+    longitude: 73.5000,
+    description: "Historic sea fort built by Chhatrapati Shivaji Maharaj",
+  },
+  "Amboli Waterfalls": {
+    name: "Amboli Waterfalls",
+    latitude: 15.9500,
+    longitude: 74.0000,
+    description: "Breathtaking waterfalls surrounded by lush greenery",
+  },
+  "Malvan Beach": {
+    name: "Malvan Beach",
+    latitude: 16.0594,
+    longitude: 73.4707,
+    description: "Famous for scuba diving and authentic Malvani cuisine",
+  },
+  "Vengurla Beach": {
+    name: "Vengurla Beach",
+    latitude: 15.8667,
+    longitude: 73.6333,
+    description: "Pristine beach with golden sand and coconut groves",
+  }
+};
+
 type Package = {
   id: string;
   title: string;
@@ -26,25 +60,17 @@ type Package = {
   highlights?: string[];
   price?: number;
   duration?: string;
-  places_included?: {
-    name: string;
-    latitude: number;
-    longitude: number;
-    description?: string;
-    restaurants?: { name: string; contact?: string; rating?: number }[];
-  }[];
+  places_included?: string[];
   activities?: string[];
 };
 
-const fetchPackageDetails = async (id: string) => {
+const fetchPackageDetails = async (id: string): Promise<Package | null> => {
   const { data, error } = await supabase
     .from("packages")
     .select("*")
     .eq("id", id)
     .single();
   if (error || !data) return null;
-
-  // Optionally, fetch associated restaurant/location info from another table if needed.
   return data;
 };
 
@@ -85,12 +111,17 @@ export default function PackageDetails() {
     );
   }
 
-  // Calculate map center
+  // Calculate map center from first static place if present
   let mapCenter: [number, number] = [16.0167, 73.4667];
-  if (pkg.places_included && pkg.places_included.length > 0) {
+  const locationObjects =
+    pkg.places_included
+      ?.map((name) => staticPlaces[name])
+      .filter((x) => !!x) as { name: string; latitude: number; longitude: number; description?: string }[];
+
+  if (locationObjects && locationObjects.length > 0) {
     mapCenter = [
-      pkg.places_included[0].latitude ?? 16.0167,
-      pkg.places_included[0].longitude ?? 73.4667,
+      locationObjects[0].latitude,
+      locationObjects[0].longitude
     ];
   }
 
@@ -149,42 +180,34 @@ export default function PackageDetails() {
               <>
                 <h3 className="font-semibold text-lg mb-3">Locations Covered</h3>
                 <ul className="space-y-3">
-                  {pkg.places_included.map((loc, idx) => (
-                    <li key={idx} className="border p-3 rounded-lg bg-konkan-turquoise-50">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold">{loc.name}</span>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="ml-2"
-                          onClick={() => handleNavigate(loc.latitude, loc.longitude)}
-                        >
-                          Navigate
-                        </Button>
-                      </div>
-                      <div className="text-sm text-gray-700">{loc.description}</div>
-                      {loc.restaurants && loc.restaurants.length > 0 && (
-                        <div className="mt-2">
-                          <span className="font-semibold">Nearby Restaurants:</span>
-                          <ul className="list-disc list-inside text-xs mt-1">
-                            {loc.restaurants.map((r, i) => (
-                              <li key={i}>
-                                <b>{r.name}</b>
-                                {r.contact && <> | {r.contact}</>}
-                                {r.rating && <> | {r.rating} ★</>}
-                              </li>
-                            ))}
-                          </ul>
+                  {pkg.places_included.map((placeName, idx) => {
+                    const staticPlace = staticPlaces[placeName];
+                    return (
+                      <li key={idx} className="border p-3 rounded-lg bg-konkan-turquoise-50">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold">{placeName}</span>
+                          {staticPlace && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="ml-2"
+                              onClick={() => handleNavigate(staticPlace.latitude, staticPlace.longitude)}
+                            >
+                              Navigate
+                            </Button>
+                          )}
                         </div>
-                      )}
-                    </li>
-                  ))}
+                        <div className="text-sm text-gray-700">{staticPlace?.description}</div>
+                        {/* No restaurant info for static places in this demo */}
+                      </li>
+                    );
+                  })}
                 </ul>
               </>
             )}
           </div>
         </div>
-        {pkg.places_included && pkg.places_included.length > 0 && (
+        {locationObjects && locationObjects.length > 0 && (
           <div className="mb-6">
             <h3 className="font-semibold text-lg mb-4">Map of All Locations</h3>
             <MapContainer
@@ -195,7 +218,7 @@ export default function PackageDetails() {
               className="mb-5"
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              {pkg.places_included.map((loc, idx) => (
+              {locationObjects.map((loc, idx) => (
                 <Marker
                   key={idx}
                   position={[loc.latitude, loc.longitude]}
