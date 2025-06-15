@@ -112,12 +112,14 @@ export default function PackageDetails() {
 
   // Calculate map center from first static place if present
   let mapCenter: [number, number] = [16.0167, 73.4667];
-  const locationObjects =
-    (pkg.places_included
-      ?.map((name) => staticPlaces[name])
-      .filter((x) => !!x) as { name: string; latitude: number; longitude: number; description?: string }[]) || [];
 
-  if (locationObjects && locationObjects.length > 0) {
+  // ENSURE locationObjects is always an array
+  const locationObjects: { name: string; latitude: number; longitude: number; description?: string }[] =
+    Array.isArray(pkg?.places_included)
+      ? pkg!.places_included!.map((name) => staticPlaces[name]).filter(Boolean)
+      : [];
+
+  if (locationObjects.length > 0) {
     mapCenter = [
       locationObjects[0].latitude,
       locationObjects[0].longitude
@@ -206,7 +208,7 @@ export default function PackageDetails() {
           </div>
         </div>
         {/* Only render the map if there are valid locations */}
-        {locationObjects && locationObjects.length > 0 && (
+        {locationObjects.length > 0 ? (
           <div className="mb-6">
             <h3 className="font-semibold text-lg mb-4">Map of All Locations</h3>
             <MapContainer
@@ -241,7 +243,7 @@ export default function PackageDetails() {
               ))}
             </MapContainer>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
