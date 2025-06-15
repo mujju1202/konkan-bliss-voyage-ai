@@ -95,23 +95,23 @@ export const ChatBotWidget = () => {
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed bottom-24 right-6 z-50 w-80 h-96"
           >
-            <Card className="glass-card border-0 shadow-2xl h-full flex flex-col">
-              <CardHeader className="border-b border-white/20 pb-3">
+            <Card className="bg-white/95 backdrop-blur-md border-0 shadow-2xl h-full flex flex-col rounded-2xl overflow-hidden">
+              <CardHeader className="border-b border-white/20 pb-3 bg-gradient-to-r from-konkan-turquoise-50 to-konkan-orange-50">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-sm">
-                    <div className="w-8 h-8 bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 rounded-full flex items-center justify-center shadow-lg">
                       <Bot className="text-white" size={16} />
                     </div>
                     <div>
-                      <p className="font-semibold">Konkan Assistant</p>
-                      <p className="text-xs text-gray-500">Quick help</p>
+                      <p className="font-semibold text-gray-800">Konkan Assistant</p>
+                      <p className="text-xs text-gray-600">Quick help</p>
                     </div>
                   </CardTitle>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsOpen(false)}
-                    className="h-8 w-8 p-0 rounded-full"
+                    className="h-8 w-8 p-0 rounded-full hover:bg-white/50 transition-all duration-200"
                   >
                     <X size={16} />
                   </Button>
@@ -120,56 +120,64 @@ export const ChatBotWidget = () => {
 
               <CardContent className="flex-1 flex flex-col p-0">
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gradient-to-b from-white/50 to-white/30">
                   {messages.map((message) => (
-                    <div
+                    <motion.div
                       key={message.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
                       className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className={`flex items-start gap-2 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      <div className={`flex items-start gap-2 max-w-[85%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${
                           message.sender === 'user' 
-                            ? 'bg-konkan-orange-500' 
-                            : 'bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500'
+                            ? 'bg-gradient-to-r from-konkan-orange-500 to-konkan-orange-600' 
+                            : 'bg-gradient-to-r from-konkan-turquoise-500 to-konkan-turquoise-600'
                         }`}>
                           {message.sender === 'user' ? 
                             <User className="text-white" size={12} /> : 
                             <Bot className="text-white" size={12} />
                           }
                         </div>
-                        <div className={`p-2 rounded-lg text-xs ${
+                        <div className={`p-3 rounded-2xl text-xs leading-relaxed shadow-lg transition-all duration-300 hover:shadow-xl ${
                           message.sender === 'user'
-                            ? 'bg-konkan-orange-500 text-white'
-                            : 'bg-white/80 backdrop-blur-sm border border-white/20'
+                            ? 'bg-gradient-to-r from-konkan-orange-500 to-konkan-orange-600 text-white'
+                            : 'bg-white/90 backdrop-blur-md border border-white/30 text-gray-800'
                         }`}>
-                          <p>{message.text}</p>
+                          <p className="break-words">{message.text}</p>
+                          <p className={`text-xs mt-2 opacity-70 ${
+                            message.sender === 'user' ? 'text-orange-100' : 'text-gray-500'
+                          }`}>
+                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
 
                 {/* Input */}
-                <div className="p-3 border-t border-white/20">
+                <div className="p-3 border-t border-white/20 bg-white/80 backdrop-blur-sm">
                   <div className="flex gap-2">
                     <Input
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       placeholder="Ask about Konkan..."
-                      className="text-xs rounded-xl border-konkan-turquoise-200"
+                      className="text-xs rounded-xl border-konkan-turquoise-200 bg-white/90 backdrop-blur-sm focus:bg-white transition-all duration-200"
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     />
                     <Button
                       onClick={handleSendMessage}
                       size="sm"
-                      className="bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 text-white rounded-xl px-3"
+                      className="bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 hover:from-konkan-turquoise-600 hover:to-konkan-orange-600 text-white rounded-xl px-3 shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       <Send size={12} />
                     </Button>
                   </div>
                   <div className="mt-2 text-center">
                     <Link to="/chat">
-                      <Button variant="ghost" size="sm" className="text-xs text-konkan-turquoise-600 hover:bg-konkan-turquoise-50">
+                      <Button variant="ghost" size="sm" className="text-xs text-konkan-turquoise-600 hover:bg-konkan-turquoise-50 rounded-xl transition-all duration-200">
                         Open Full Chat Assistant →
                       </Button>
                     </Link>

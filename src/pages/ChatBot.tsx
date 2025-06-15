@@ -222,15 +222,15 @@ const ChatBot = () => {
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Chat Interface */}
-          <Card className="glass-card border-0 shadow-2xl h-[600px] flex flex-col">
-            <CardHeader className="border-b border-white/20">
+          <Card className="bg-white/95 backdrop-blur-md border-0 shadow-2xl h-[600px] flex flex-col rounded-2xl overflow-hidden">
+            <CardHeader className="border-b border-white/20 bg-gradient-to-r from-konkan-turquoise-50 to-konkan-orange-50">
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 rounded-full flex items-center justify-center shadow-lg">
                     <Bot className="text-white" size={20} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Konkan AI Guide</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">Konkan AI Guide</h3>
                     <p className="text-sm text-gray-600">Your personal travel assistant</p>
                   </div>
                 </div>
@@ -239,7 +239,7 @@ const ChatBot = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setVoiceEnabled(!voiceEnabled)}
-                    className={`rounded-xl ${voiceEnabled ? 'bg-konkan-turquoise-50 text-konkan-turquoise-600' : ''}`}
+                    className={`rounded-xl transition-all duration-200 ${voiceEnabled ? 'bg-konkan-turquoise-50 text-konkan-turquoise-600 border-konkan-turquoise-200' : ''}`}
                   >
                     {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
                   </Button>
@@ -248,7 +248,7 @@ const ChatBot = () => {
                       variant="outline"
                       size="sm"
                       onClick={stopSpeaking}
-                      className="rounded-xl text-red-600"
+                      className="rounded-xl text-red-600 border-red-200 hover:bg-red-50"
                     >
                       Stop
                     </Button>
@@ -259,7 +259,7 @@ const ChatBot = () => {
 
             <CardContent className="flex-1 flex flex-col p-0">
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-white/50 to-white/30">
                 <AnimatePresence>
                   {messages.map((message) => (
                     <motion.div
@@ -267,26 +267,27 @@ const ChatBot = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4 }}
                       className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div className={`flex items-start gap-3 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-lg ${
                           message.sender === 'user' 
-                            ? 'bg-konkan-orange-500' 
-                            : 'bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500'
+                            ? 'bg-gradient-to-r from-konkan-orange-500 to-konkan-orange-600' 
+                            : 'bg-gradient-to-r from-konkan-turquoise-500 to-konkan-turquoise-600'
                         }`}>
                           {message.sender === 'user' ? 
                             <User className="text-white" size={16} /> : 
                             <Bot className="text-white" size={16} />
                           }
                         </div>
-                        <div className={`p-4 rounded-2xl ${
+                        <div className={`p-4 rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl ${
                           message.sender === 'user'
-                            ? 'bg-konkan-orange-500 text-white'
-                            : 'bg-white/80 backdrop-blur-sm border border-white/20'
+                            ? 'bg-gradient-to-r from-konkan-orange-500 to-konkan-orange-600 text-white'
+                            : 'bg-white/90 backdrop-blur-md border border-white/30 text-gray-800'
                         }`}>
-                          <p className="text-sm leading-relaxed">{message.text}</p>
-                          <p className={`text-xs mt-2 ${
+                          <p className="text-sm leading-relaxed break-words">{message.text}</p>
+                          <p className={`text-xs mt-2 opacity-70 ${
                             message.sender === 'user' ? 'text-orange-100' : 'text-gray-500'
                           }`}>
                             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -304,10 +305,10 @@ const ChatBot = () => {
                     className="flex justify-start"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-konkan-turquoise-500 to-konkan-turquoise-600 flex items-center justify-center shadow-lg">
                         <Bot className="text-white" size={16} />
                       </div>
-                      <div className="bg-white/80 backdrop-blur-sm border border-white/20 p-4 rounded-2xl">
+                      <div className="bg-white/90 backdrop-blur-md border border-white/30 p-4 rounded-2xl shadow-lg">
                         <div className="flex space-x-1">
                           <div className="w-2 h-2 bg-konkan-turquoise-500 rounded-full animate-bounce"></div>
                           <div className="w-2 h-2 bg-konkan-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -322,7 +323,7 @@ const ChatBot = () => {
               </div>
 
               {/* Quick Questions */}
-              <div className="px-6 py-4 border-t border-white/20">
+              <div className="px-6 py-4 border-t border-white/20 bg-white/80 backdrop-blur-sm">
                 <p className="text-sm text-gray-600 mb-3">Quick questions:</p>
                 <div className="flex flex-wrap gap-2">
                   {quickQuestions.map((question, index) => (
@@ -332,7 +333,7 @@ const ChatBot = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1 }}
                       onClick={() => handleQuickQuestion(question)}
-                      className="px-3 py-1 bg-konkan-turquoise-100 text-konkan-turquoise-700 text-xs rounded-full hover:bg-konkan-turquoise-200 transition-colors"
+                      className="px-3 py-1 bg-konkan-turquoise-100 text-konkan-turquoise-700 text-xs rounded-full hover:bg-konkan-turquoise-200 transition-all duration-200 hover:scale-105"
                     >
                       {question}
                     </motion.button>
@@ -341,14 +342,14 @@ const ChatBot = () => {
               </div>
 
               {/* Input */}
-              <div className="p-6 border-t border-white/20">
+              <div className="p-6 border-t border-white/20 bg-white/90 backdrop-blur-sm">
                 <div className="flex gap-3">
                   <div className="flex-1 relative">
                     <Input
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       placeholder="Ask me anything about Konkan..."
-                      className="pr-12 rounded-2xl border-konkan-turquoise-200 focus:border-konkan-turquoise-400"
+                      className="pr-12 rounded-2xl border-konkan-turquoise-200 focus:border-konkan-turquoise-400 bg-white/90 backdrop-blur-sm focus:bg-white transition-all duration-200"
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     />
                     <Button
@@ -356,8 +357,8 @@ const ChatBot = () => {
                       size="sm"
                       onClick={startListening}
                       disabled={isListening}
-                      className={`absolute right-2 top-1/2 transform -translate-y-1/2 rounded-xl ${
-                        isListening ? 'text-red-500' : 'text-konkan-turquoise-600'
+                      className={`absolute right-2 top-1/2 transform -translate-y-1/2 rounded-xl transition-all duration-200 ${
+                        isListening ? 'text-red-500 bg-red-50' : 'text-konkan-turquoise-600 hover:bg-konkan-turquoise-50'
                       }`}
                     >
                       {isListening ? <MicOff size={16} /> : <Mic size={16} />}
@@ -366,7 +367,7 @@ const ChatBot = () => {
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isLoading}
-                    className="bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 hover:from-konkan-turquoise-600 hover:to-konkan-orange-600 text-white rounded-2xl px-6"
+                    className="bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 hover:from-konkan-turquoise-600 hover:to-konkan-orange-600 text-white rounded-2xl px-6 shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     <Send size={16} />
                   </Button>
