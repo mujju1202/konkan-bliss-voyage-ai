@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -114,9 +113,9 @@ export default function PackageDetails() {
   // Calculate map center from first static place if present
   let mapCenter: [number, number] = [16.0167, 73.4667];
   const locationObjects =
-    pkg.places_included
+    (pkg.places_included
       ?.map((name) => staticPlaces[name])
-      .filter((x) => !!x) as { name: string; latitude: number; longitude: number; description?: string }[];
+      .filter((x) => !!x) as { name: string; latitude: number; longitude: number; description?: string }[]) || [];
 
   if (locationObjects && locationObjects.length > 0) {
     mapCenter = [
@@ -218,6 +217,7 @@ export default function PackageDetails() {
               className="mb-5"
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              {/* Only render valid Marker(s). Never pass undefined or null! */}
               {locationObjects.map((loc, idx) => (
                 <Marker
                   key={idx}
