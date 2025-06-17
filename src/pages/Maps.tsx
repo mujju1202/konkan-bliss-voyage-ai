@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Navigation as NavigationIcon, Clock, Car, Route, Search, Compass } from "lucide-react";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 const konkanPlaces = [
   { name: "Tarkarli Beach", lat: 16.0167, lng: 73.4667, type: "Beach", color: "konkan-turquoise" },
@@ -19,19 +20,178 @@ const konkanPlaces = [
   { name: "Redi Beach", lat: 15.7500, lng: 73.5833, type: "Beach", color: "konkan-turquoise" },
 ];
 
+declare global {
+  interface Window {
+    google: any;
+    initMap: () => void;
+  }
+}
+
 const Maps = () => {
   const [currentLocation, setCurrentLocation] = useState("");
   const [destination, setDestination] = useState("");
-  const [selectedPlace, setSelectedPlace] = useState(null);
-  const [routeInfo, setRouteInfo] = useState(null);
+  const [selectedPlace, setSelectedPlace] = useState<any>(null);
+  const [routeInfo, setRouteInfo] = useState<any>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const directionsServiceRef = useRef<any>(null);
+  const directionsRendererRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if Google Maps API is loaded
+    const checkGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        initializeMap();
+        setMapLoaded(true);
+      } else {
+        // If Google Maps is not loaded, show a message
+        setTimeout(checkGoogleMaps, 100);
+      }
+    };
+
+    checkGoogleMaps();
+  }, []);
+
+  const initializeMap = () => {
+    if (!mapRef.current || !window.google) return;
+
+    // Initialize map centered on Konkan region
+    mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+      center: { lat: 16.0167, lng: 73.4667 },
+      zoom: 10,
+      styles: [
+        {
+          featureType: "water",
+          elementType: "geometry",
+          stylers: [{ color: "#14b8a6" }]
+        },
+        {
+          featureType: "landscape",
+          elementType: "geometry",
+          stylers: [{ color: "#f0fdfa" }]
+        }
+      ]
+    });
+
+    // Initialize directions service and renderer
+    directionsServiceRef.current = new window.google.maps.DirectionsService();
+    directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
+      draggable: true,
+      panel: null
+    });
+    directionsRendererRef.current.setMap(mapInstanceRef.current);
+
+    // Add markers for all Konkan places
+    addPlaceMarkers();
+
+    // Listen for directions changes
+    directionsRendererRef.current.addListener('directions_changed', () => {
+      const directions = directionsRendererRef.current.getDirections();
+      const route = directions.routes[0];
+      if (route) {
+        setRouteInfo({
+          distance: route.legs[0].distance.text,
+          duration: route.legs[0].duration.text,
+          route: `Via ${route.summary}`
+        });
+      }
+    });
+  };
+
+  const addPlaceMarkers = () => {
+    if (!mapInstanceRef.current || !window.google) return;
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.setMap(null));
+    markersRef.current = [];
+
+    konkanPlaces.forEach(place => {
+      const marker = new window.google.maps.Marker({
+        position: { lat: place.lat, lng: place.lng },
+        map: mapInstanceRef.current,
+        title: place.name,
+        icon: {
+          url: place.type === 'Beach' 
+            ? 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="#14b8a6"/>
+                <circle cx="12" cy="12" r="6" fill="white"/>
+              </svg>
+            `)
+            : place.type === 'Heritage'
+            ? 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="#f97316"/>
+                <circle cx="12" cy="12" r="6" fill="white"/>
+              </svg>
+            `)
+            : 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="#22c55e"/>
+                <circle cx="12" cy="12" r="6" fill="white"/>
+              </svg>
+            `),
+          scaledSize: new window.google.maps.Size(30, 30)
+        }
+      });
+
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: `
+          <div style="padding: 10px;">
+            <h3 style="margin: 0 0 5px 0; color: #1f2937;">${place.name}</h3>
+            <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 14px;">${place.type}</p>
+            <button 
+              onclick="window.navigateToPlace('${place.name}')" 
+              style="background: linear-gradient(to right, #14b8a6, #f97316); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px;"
+            >
+              Navigate Here
+            </button>
+          </div>
+        `
+      });
+
+      marker.addListener('click', () => {
+        infoWindow.open(mapInstanceRef.current, marker);
+        setSelectedPlace(place);
+      });
+
+      markersRef.current.push(marker);
+    });
+  };
+
+  const calculateRoute = (from: string, to: string) => {
+    if (!directionsServiceRef.current || !from || !to) return;
+
+    const request = {
+      origin: from,
+      destination: to,
+      travelMode: window.google.maps.TravelMode.DRIVING,
+    };
+
+    directionsServiceRef.current.route(request, (result: any, status: any) => {
+      if (status === window.google.maps.DirectionsStatus.OK) {
+        directionsRendererRef.current.setDirections(result);
+      } else {
+        toast({
+          title: "Route Error",
+          description: `Directions request failed: ${status}`,
+          variant: "destructive"
+        });
+      }
+    });
+  };
 
   const handleGetDirections = () => {
     if (currentLocation && destination) {
-      // Mock route calculation
-      setRouteInfo({
-        distance: "45.2 km",
-        duration: "1h 15m",
-        route: "Via NH-66 and coastal roads"
+      calculateRoute(currentLocation, destination);
+    } else {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both starting location and destination.",
+        variant: "destructive"
       });
     }
   };
@@ -40,17 +200,49 @@ const Maps = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setCurrentLocation(`${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setCurrentLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+          
+          // Center map on user's location
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.setCenter({ lat, lng });
+            mapInstanceRef.current.setZoom(12);
+          }
         },
         (error) => {
           console.error("Error getting location:", error);
           setCurrentLocation("Mumbai, Maharashtra");
+          toast({
+            title: "Location Error",
+            description: "Could not get your current location. Using default location.",
+            variant: "destructive"
+          });
         }
       );
     } else {
       setCurrentLocation("Mumbai, Maharashtra");
+      toast({
+        title: "Location Not Supported",
+        description: "Geolocation is not supported by this browser.",
+        variant: "destructive"
+      });
     }
   };
+
+  // Global function for info window buttons
+  useEffect(() => {
+    window.navigateToPlace = (placeName: string) => {
+      setDestination(placeName);
+      if (currentLocation) {
+        calculateRoute(currentLocation, placeName);
+      }
+    };
+
+    return () => {
+      delete window.navigateToPlace;
+    };
+  }, [currentLocation]);
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -102,6 +294,7 @@ const Maps = () => {
                     <label className="block text-sm font-medium mb-2">From</label>
                     <div className="flex gap-2">
                       <Input
+                        id="from"
                         placeholder="Enter your location"
                         value={currentLocation}
                         onChange={(e) => setCurrentLocation(e.target.value)}
@@ -121,6 +314,7 @@ const Maps = () => {
                   <div>
                     <label className="block text-sm font-medium mb-2">To</label>
                     <Input
+                      id="to"
                       placeholder="Select destination"
                       value={destination}
                       onChange={(e) => setDestination(e.target.value)}
@@ -129,6 +323,7 @@ const Maps = () => {
                   </div>
                   
                   <Button 
+                    id="get-directions"
                     onClick={handleGetDirections}
                     className="w-full bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 text-white rounded-xl hover-lift"
                   >
@@ -183,7 +378,13 @@ const Maps = () => {
                             ? 'bg-konkan-turquoise-100 border-2 border-konkan-turquoise-300' 
                             : 'bg-white/70 hover:bg-white'
                         }`}
-                        onClick={() => setSelectedPlace(place)}
+                        onClick={() => {
+                          setSelectedPlace(place);
+                          if (mapInstanceRef.current) {
+                            mapInstanceRef.current.setCenter({ lat: place.lat, lng: place.lng });
+                            mapInstanceRef.current.setZoom(14);
+                          }
+                        }}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -212,97 +413,43 @@ const Maps = () => {
               </Card>
             </div>
 
-            {/* Map Display */}
+            {/* Google Maps Display */}
             <div className="lg:col-span-2">
               <Card className="glass-card border-0 shadow-xl h-[600px]">
                 <CardContent className="p-0 h-full">
-                  <div className="relative h-full bg-gradient-to-br from-konkan-turquoise-100 to-konkan-orange-100 rounded-xl overflow-hidden">
-                    {/* Mock Map Interface */}
-                    <div className="absolute inset-0 flex items-center justify-center">
+                  {!window.google ? (
+                    <div className="h-full flex items-center justify-center bg-gradient-to-br from-konkan-turquoise-100 to-konkan-orange-100 rounded-xl">
                       <div className="text-center">
                         <div className="w-32 h-32 bg-gradient-to-br from-konkan-turquoise-400 to-konkan-orange-400 rounded-full flex items-center justify-center mb-6 mx-auto">
                           <MapPin className="text-white" size={48} />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-700 mb-2">Interactive Map</h3>
+                        <h3 className="text-2xl font-bold text-gray-700 mb-2">Google Maps Integration</h3>
                         <p className="text-gray-600 mb-6 max-w-md">
-                          This is a placeholder for the interactive map. In a real implementation, 
-                          you would integrate Google Maps API or Mapbox to show actual locations and routes.
+                          To enable the interactive map, please add your Google Maps API key to the script tag in index.html.
+                          Replace "YOUR_API_KEY" with your actual API key.
                         </p>
-                        <div className="flex flex-wrap gap-2 justify-center">
-                          {konkanPlaces.map((place) => (
-                            <Badge 
-                              key={place.name}
-                              className={`${getTypeColor(place.type)} text-white cursor-pointer hover:scale-105 transition-transform`}
-                              onClick={() => setSelectedPlace(place)}
-                            >
-                              {place.name}
-                            </Badge>
-                          ))}
+                        <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4 text-left">
+                          <p className="text-sm text-yellow-800">
+                            <strong>Note:</strong> The Google Maps API key is required for the map to function. 
+                            Get your API key from the Google Cloud Console and enable the Maps JavaScript API.
+                          </p>
                         </div>
                       </div>
                     </div>
-
-                    {/* Map Controls */}
-                    <div className="absolute top-4 right-4 space-y-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="bg-white/90 backdrop-blur-sm rounded-xl"
-                      >
-                        <Search size={16} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="bg-white/90 backdrop-blur-sm rounded-xl"
-                      >
-                        <Compass size={16} />
-                      </Button>
-                    </div>
-
-                    {/* Selected Place Info */}
-                    {selectedPlace && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-lg"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-4 h-4 rounded-full ${getTypeColor(selectedPlace.type)}`}></div>
-                            <div>
-                              <h4 className="font-semibold">{selectedPlace.name}</h4>
-                              <p className="text-sm text-gray-600">{selectedPlace.type}</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => setDestination(selectedPlace.name)}
-                              className="bg-konkan-turquoise-500 hover:bg-konkan-turquoise-600 text-white rounded-xl"
-                            >
-                              <NavigationIcon className="mr-1" size={14} />
-                              Navigate
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedPlace(null)}
-                              className="rounded-xl"
-                            >
-                              Close
-                            </Button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
+                  ) : (
+                    <div 
+                      ref={mapRef}
+                      id="map"
+                      className="w-full h-full rounded-xl"
+                      style={{ minHeight: '600px' }}
+                    />
+                  )}
                 </CardContent>
               </Card>
             </div>
           </div>
 
-          {/* Map Integration Note */}
+          {/* Map Integration Info */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -310,19 +457,24 @@ const Maps = () => {
             className="mt-8 bg-konkan-sand-50 border border-konkan-sand-200 rounded-xl p-6"
           >
             <h3 className="text-lg font-semibold text-konkan-sand-800 mb-2">
-              🗺️ Map Integration
+              🗺️ Google Maps Integration
             </h3>
-            <p className="text-konkan-sand-700">
-              This is a UI mockup of the interactive map feature. In a production environment, 
-              this would be integrated with Google Maps API or Mapbox to provide:
+            <p className="text-konkan-sand-700 mb-3">
+              This page now includes full Google Maps integration with the following features:
             </p>
-            <ul className="mt-3 space-y-1 text-konkan-sand-700">
-              <li>• Real-time GPS navigation</li>
-              <li>• Live traffic updates</li>
-              <li>• Satellite and street view</li>
-              <li>• Turn-by-turn directions</li>
-              <li>• Offline map support</li>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-konkan-sand-700">
+              <li>• Interactive map with custom markers</li>
+              <li>• Real-time directions and routing</li>
+              <li>• Current location detection</li>
+              <li>• Place markers with info windows</li>
+              <li>• Route distance and duration display</li>
+              <li>• Custom map styling for Konkan theme</li>
             </ul>
+            <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <strong>Setup Required:</strong> Replace "YOUR_API_KEY" in index.html with your Google Maps JavaScript API key to activate the map.
+              </p>
+            </div>
           </motion.div>
         </div>
       </div>
