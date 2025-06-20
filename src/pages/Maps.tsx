@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Navigation as NavigationIcon, Clock, Car, Route, Search, Compass } from "lucide-react";
+import { MapPin, Navigation as NavigationIcon, Clock, Car, Route, Search, Compass, ExternalLink, Key } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,8 +47,8 @@ const Maps = () => {
         initializeMap();
         setMapLoaded(true);
       } else {
-        // If Google Maps is not loaded, show a message
-        setTimeout(checkGoogleMaps, 100);
+        // Google Maps is not loaded - this is expected without a valid API key
+        setMapLoaded(false);
       }
     };
 
@@ -299,12 +299,14 @@ const Maps = () => {
                         value={currentLocation}
                         onChange={(e) => setCurrentLocation(e.target.value)}
                         className="rounded-xl"
+                        disabled={!window.google}
                       />
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={handleGetCurrentLocation}
                         className="rounded-xl"
+                        disabled={!window.google}
                       >
                         <Compass size={16} />
                       </Button>
@@ -319,6 +321,7 @@ const Maps = () => {
                       value={destination}
                       onChange={(e) => setDestination(e.target.value)}
                       className="rounded-xl"
+                      disabled={!window.google}
                     />
                   </div>
                   
@@ -326,6 +329,7 @@ const Maps = () => {
                     id="get-directions"
                     onClick={handleGetDirections}
                     className="w-full bg-gradient-to-r from-konkan-turquoise-500 to-konkan-orange-500 text-white rounded-xl hover-lift"
+                    disabled={!window.google}
                   >
                     <NavigationIcon className="mr-2" size={16} />
                     Get Directions
@@ -402,6 +406,7 @@ const Maps = () => {
                               setDestination(place.name);
                             }}
                             className="text-konkan-turquoise-600 hover:bg-konkan-turquoise-50"
+                            disabled={!window.google}
                           >
                             <NavigationIcon size={14} />
                           </Button>
@@ -419,19 +424,32 @@ const Maps = () => {
                 <CardContent className="p-0 h-full">
                   {!window.google ? (
                     <div className="h-full flex items-center justify-center bg-gradient-to-br from-konkan-turquoise-100 to-konkan-orange-100 rounded-xl">
-                      <div className="text-center">
+                      <div className="text-center max-w-lg p-8">
                         <div className="w-32 h-32 bg-gradient-to-br from-konkan-turquoise-400 to-konkan-orange-400 rounded-full flex items-center justify-center mb-6 mx-auto">
-                          <MapPin className="text-white" size={48} />
+                          <Key className="text-white" size={48} />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-700 mb-2">Google Maps Integration</h3>
-                        <p className="text-gray-600 mb-6 max-w-md">
-                          To enable the interactive map, please add your Google Maps API key to the script tag in index.html.
-                          Replace "YOUR_API_KEY" with your actual API key.
+                        <h3 className="text-2xl font-bold text-gray-700 mb-4">Google Maps Setup Required</h3>
+                        <p className="text-gray-600 mb-6">
+                          To enable the interactive map with live directions and navigation, you'll need to set up a Google Maps API key.
                         </p>
-                        <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4 text-left">
-                          <p className="text-sm text-yellow-800">
-                            <strong>Note:</strong> The Google Maps API key is required for the map to function. 
-                            Get your API key from the Google Cloud Console and enable the Maps JavaScript API.
+                        
+                        <div className="bg-white/80 rounded-lg p-6 text-left space-y-4">
+                          <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                            <ExternalLink size={16} />
+                            Setup Steps:
+                          </h4>
+                          <ol className="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+                            <li>Visit the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-konkan-turquoise-600 hover:underline">Google Cloud Console</a></li>
+                            <li>Create a new project or select an existing one</li>
+                            <li>Enable the "Maps JavaScript API"</li>
+                            <li>Create an API key in the Credentials section</li>
+                            <li>Replace the commented script tag in index.html with your API key</li>
+                          </ol>
+                        </div>
+
+                        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm text-blue-800">
+                            <strong>Note:</strong> Once configured, you'll have access to interactive maps, real-time directions, place markers, and route planning features.
                           </p>
                         </div>
                       </div>
@@ -449,31 +467,38 @@ const Maps = () => {
             </div>
           </div>
 
-          {/* Map Integration Info */}
+          {/* Setup Instructions */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="mt-8 bg-konkan-sand-50 border border-konkan-sand-200 rounded-xl p-6"
+            className="mt-8 bg-gradient-to-r from-konkan-turquoise-50 to-konkan-orange-50 border border-konkan-turquoise-200 rounded-xl p-6"
           >
-            <h3 className="text-lg font-semibold text-konkan-sand-800 mb-2">
-              🗺️ Google Maps Integration
+            <h3 className="text-lg font-semibold text-konkan-turquoise-800 mb-3 flex items-center gap-2">
+              <Key size={20} />
+              Google Maps Integration Setup
             </h3>
-            <p className="text-konkan-sand-700 mb-3">
-              This page now includes full Google Maps integration with the following features:
-            </p>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-konkan-sand-700">
-              <li>• Interactive map with custom markers</li>
-              <li>• Real-time directions and routing</li>
-              <li>• Current location detection</li>
-              <li>• Place markers with info windows</li>
-              <li>• Route distance and duration display</li>
-              <li>• Custom map styling for Konkan theme</li>
-            </ul>
-            <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>Setup Required:</strong> Replace "YOUR_API_KEY" in index.html with your Google Maps JavaScript API key to activate the map.
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium text-konkan-turquoise-700 mb-2">Features Available:</h4>
+                <ul className="text-sm text-konkan-turquoise-600 space-y-1">
+                  <li>• Interactive map with custom styling</li>
+                  <li>• Real-time directions and routing</li>
+                  <li>• Current location detection</li>
+                  <li>• Place markers with info windows</li>
+                  <li>• Route distance and duration display</li>
+                  <li>• Draggable route planning</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium text-konkan-orange-700 mb-2">To Enable Maps:</h4>
+                <div className="text-sm text-konkan-orange-600 space-y-2">
+                  <p>1. Get your API key from Google Cloud Console</p>
+                  <p>2. Uncomment the script tag in index.html</p>
+                  <p>3. Replace "YOUR_API_KEY" with your actual key</p>
+                  <p>4. Refresh the page to see the interactive map</p>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
